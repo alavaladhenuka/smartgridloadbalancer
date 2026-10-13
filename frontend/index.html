@@ -1,0 +1,660 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Smart Grid Load Balancer | Educational Microgrid Simulation</title>
+    <meta name="description" content="Intelligent Microgrid Load Forecasting and Zone-Level Load Redistribution Simulation using ADSA Graph algorithms, Java OOP, and Python Forecasting.">
+    
+    <!-- Google Fonts: Inter & Outfit for modern engineering dashboard typography -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=Outfit:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+    
+    <!-- Chart.js for High-Precision Load Demand Visualization -->
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+    <!-- Top Simulation Disclaimer Banner -->
+    <div class="simulation-badge-bar">
+        <span>⚡ <strong>EDUCATIONAL SIMULATION PROTOTYPE</strong> &bull; Microgrid Software Model &bull; No Real Electrical Infrastructure Controlled</span>
+    </div>
+
+    <!-- Main Container -->
+    <div class="app-layout">
+        
+        <!-- Header -->
+        <header class="app-header">
+            <div class="header-branding">
+                <div class="brand-icon">⚡</div>
+                <div>
+                    <h1 class="brand-title">Smart Grid Load Balancer</h1>
+                    <p class="brand-subtitle">Intelligent Load Forecasting and Zone-Level Load Redistribution Simulation</p>
+                </div>
+            </div>
+
+            <div class="header-actions">
+                <div class="backend-badge" id="backendBadge">
+                    <span class="pulse-dot"></span>
+                    <span id="backendStatusText">SYSTEM ONLINE</span>
+                </div>
+                <div class="academic-tags">
+                    <button class="tech-tag java-tag" style="cursor: pointer; border: 1px solid rgba(56, 189, 248, 0.4);" onclick="openSubjectsModal()">📚 Subjects Used</button>
+                    <button class="tech-tag python-tag" style="cursor: pointer; border: 1px solid rgba(52, 211, 153, 0.4);" onclick="openElectricityModal()">⚡ Allot Electricity</button>
+                </div>
+            </div>
+        </header>
+
+        <!-- Main Dashboard Content -->
+        <main class="dashboard-grid">
+
+            <!-- Row 1: KPI Overview Cards -->
+            <section class="kpi-grid">
+                <!-- Card 1: Total Zones -->
+                <div class="kpi-card">
+                    <div class="kpi-header">
+                        <span class="kpi-label">TOTAL ZONES</span>
+                        <div class="kpi-icon">🌐</div>
+                    </div>
+                    <div class="kpi-value-row">
+                        <span class="kpi-number" id="kpiTotalZones">5</span>
+                        <span class="kpi-unit">Active Nodes</span>
+                    </div>
+                    <div class="kpi-footer">
+                        <span class="kpi-subtext">Connected via Adjacency Graph</span>
+                    </div>
+                </div>
+
+                <!-- Card 2: Overloaded Zones -->
+                <div class="kpi-card" id="cardOverload">
+                    <div class="kpi-header">
+                        <span class="kpi-label">OVERLOADED ZONES</span>
+                        <div class="kpi-icon alert-icon">⚠️</div>
+                    </div>
+                    <div class="kpi-value-row">
+                        <span class="kpi-number text-crimson" id="kpiOverloadCount">0</span>
+                        <span class="kpi-badge badge-normal" id="kpiOverloadBadge">Grid Safe</span>
+                    </div>
+                    <div class="kpi-footer">
+                        <span class="kpi-subtext" id="kpiOverloadSubtext">All nodes under capacity limits</span>
+                    </div>
+                </div>
+
+                <!-- Card 3: Grid Utilization -->
+                <div class="kpi-card">
+                    <div class="kpi-header">
+                        <span class="kpi-label">GRID UTILIZATION</span>
+                        <div class="kpi-icon">📊</div>
+                    </div>
+                    <div class="kpi-value-row">
+                        <span class="kpi-number" id="kpiGridUtil">69.0%</span>
+                        <span class="kpi-unit" id="kpiLoadVsCap">345 / 500 kW</span>
+                    </div>
+                    <div class="kpi-progress-bg">
+                        <div class="kpi-progress-bar" id="kpiUtilBar" style="width: 69%;"></div>
+                    </div>
+                </div>
+
+                <!-- Card 4: Total Load Shifted -->
+                <div class="kpi-card">
+                    <div class="kpi-header">
+                        <span class="kpi-label">TOTAL LOAD SHIFTED</span>
+                        <div class="kpi-icon">🔄</div>
+                    </div>
+                    <div class="kpi-value-row">
+                        <span class="kpi-number text-emerald" id="kpiLoadShifted">0.0</span>
+                        <span class="kpi-unit">kW Redistributed</span>
+                    </div>
+                    <div class="kpi-footer">
+                        <span class="kpi-subtext" id="kpiShiftedSubtext">Awaiting balancing actions</span>
+                    </div>
+                </div>
+            </section>
+
+            <!-- Row 2: Control Toolbar -->
+            <section class="control-panel card-panel">
+                <div class="control-panel-header">
+                    <div class="section-title-wrap">
+                        <span class="section-icon">⚙️</span>
+                        <h2 class="section-title">Simulation Control Center</h2>
+                    </div>
+                    <span class="control-step-hint">Academic microgrid controls & manual configuration</span>
+                </div>
+                
+                <div class="button-group">
+                    <button id="btnAddGridBtn" class="btn btn-outline" style="border-color: #10b981; color: #34d399;" onclick="openAddZoneModal()">
+                        <span class="btn-icon">➕</span>
+                        <span class="btn-text">Add New Grid</span>
+                        <span class="btn-subtext">Custom Node &amp; Name</span>
+                    </button>
+
+                    <button id="btnAllotElectricity" class="btn btn-outline" style="border-color: #06b6d4; color: #38bdf8;" onclick="openElectricityModal()">
+                        <span class="btn-icon">⚡</span>
+                        <span class="btn-text">Enter Allotted Electricity</span>
+                        <span class="btn-subtext">Manually Configure Grid</span>
+                    </button>
+
+                    <button id="btnRunForecast" class="btn btn-primary" onclick="handleRunForecast()">
+                        <span class="btn-icon">📈</span>
+                        <span class="btn-text">1. Run Forecast</span>
+                        <span class="btn-subtext">Python Moving-Average</span>
+                    </button>
+
+                    <button id="btnDetectOverload" class="btn btn-warning" onclick="handleDetectOverload()">
+                        <span class="btn-icon">🔍</span>
+                        <span class="btn-text">2. Detect Overload</span>
+                        <span class="btn-subtext">Scan Peak Limits</span>
+                    </button>
+
+                    <button id="btnBalanceGrid" class="btn btn-success" onclick="handleBalanceGrid()">
+                        <span class="btn-icon">⚖️</span>
+                        <span class="btn-text">3. Simulate Load Balancing</span>
+                        <span class="btn-subtext">Graph Traversal Transfer</span>
+                    </button>
+
+                    <button id="btnResetSim" class="btn btn-secondary" onclick="handleResetSimulation()">
+                        <span class="btn-icon">🔄</span>
+                        <span class="btn-text">4. Reset Simulation</span>
+                        <span class="btn-subtext">Restore Initial State</span>
+                    </button>
+
+                    <button id="btnDivideConquer" class="btn btn-outline" onclick="openDivideConquerModal()">
+                        <span class="btn-icon">🌳</span>
+                        <span class="btn-text">Divide &amp; Conquer</span>
+                        <span class="btn-subtext">ADSA Partitioning</span>
+                    </button>
+
+                    <button id="btnSubjectsInfo" class="btn btn-outline" style="border-color: #818cf8; color: #a5b4fc;" onclick="openSubjectsModal()">
+                        <span class="btn-icon">📚</span>
+                        <span class="btn-text">Project Subjects</span>
+                        <span class="btn-subtext">ADSA • OOPJ • Python</span>
+                    </button>
+                </div>
+            </section>
+
+            <!-- Prominent Grid Balanced Banner (Appears when balancing completes) -->
+            <div id="gridBalancedBanner" class="grid-balanced-banner" style="display: none;">
+                <div class="banner-left">
+                    <div class="banner-check-icon">✅</div>
+                    <div>
+                        <div class="banner-title">GRID STATUS: BALANCED &amp; STABILIZED</div>
+                        <div class="banner-subtext" id="gridBalancedSubtext">All microgrid zones are safely balanced within allotted electrical capacities. No overload risks.</div>
+                    </div>
+                </div>
+                <div class="banner-metrics-badge" id="gridBalancedMetrics">15.0 kW Shifted • 100% Equilibrium</div>
+            </div>
+
+            <!-- Row 3: Grid Topology & Load Balancing Action Panel -->
+            <div class="grid-middle-row">
+                
+                <!-- Left Column: Grid Topology Panel -->
+                <section class="topology-panel card-panel">
+                    <div class="panel-header">
+                        <div class="section-title-wrap">
+                            <span class="section-icon">🕸️</span>
+                            <h2 class="section-title">Grid Topology & Power Flow</h2>
+                        </div>
+                        <div class="topology-legend">
+                            <span class="legend-item"><span class="legend-dot dot-normal"></span> Normal (&lt;85%)</span>
+                            <span class="legend-item"><span class="legend-dot dot-warning"></span> Warning (85-99%)</span>
+                            <span class="legend-item"><span class="legend-dot dot-overload"></span> Overloaded (&ge;100%)</span>
+                        </div>
+                    </div>
+
+                    <!-- SVG Topology Graph -->
+                    <div class="topology-canvas-container" id="topologyContainer">
+                        <svg id="topologySvg" viewBox="0 0 700 420" preserveAspectRatio="xMidYMid meet">
+                            <defs>
+                                <!-- Arrow marker for power flow -->
+                                <marker id="arrowNormal" viewBox="0 0 10 10" refX="28" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
+                                    <path d="M 0 0 L 10 5 L 0 10 z" fill="#3b82f6"/>
+                                </marker>
+                                <marker id="arrowTransfer" viewBox="0 0 10 10" refX="28" refY="5" markerWidth="8" markerHeight="8" orient="auto-start-reverse">
+                                    <path d="M 0 0 L 10 5 L 0 10 z" fill="#10b981"/>
+                                </marker>
+                                <!-- Glow filters -->
+                                <filter id="glowOverload" x="-20%" y="-20%" width="140%" height="140%">
+                                    <feGaussianBlur stdDeviation="6" result="blur"/>
+                                    <feComposite in="SourceGraphic" in2="blur" operator="over"/>
+                                </filter>
+                                <filter id="glowActive" x="-20%" y="-20%" width="140%" height="140%">
+                                    <feGaussianBlur stdDeviation="4" result="blur"/>
+                                    <feComposite in="SourceGraphic" in2="blur" operator="over"/>
+                                </filter>
+                            </defs>
+
+                            <!-- Transmission Line Edges -->
+                            <g id="edgesGroup"></g>
+
+                            <!-- Animated Power Transfer Packets -->
+                            <g id="transferPacketsGroup"></g>
+
+                            <!-- Zone Vertices (Nodes) -->
+                            <g id="nodesGroup"></g>
+                        </svg>
+                    </div>
+
+                    <div class="topology-footer">
+                        <span>Topology: <strong>5 Nodes, 5 Bidirectional Edges</strong> | Graph Search: <strong>Breadth-First Search (BFS)</strong></span>
+                    </div>
+                </section>
+
+                <!-- Right Column: Load Balancing Transfer Action Panel -->
+                <section class="balancing-panel card-panel">
+                    <div class="panel-header">
+                        <div class="section-title-wrap">
+                            <span class="section-icon">⚡</span>
+                            <h2 class="section-title">Load Redistribution Monitor</h2>
+                        </div>
+                        <span class="badge-status-pill" id="balancingStatusPill">Idle</span>
+                    </div>
+
+                    <!-- Visual Load Transfer Flow Widget -->
+                    <div class="transfer-flow-widget" id="transferFlowWidget">
+                        <div class="transfer-source-box">
+                            <span class="transfer-node-label">SOURCE ZONE</span>
+                            <span class="transfer-node-id" id="flowSourceId">Z2</span>
+                            <span class="transfer-node-sub" id="flowSourceSub">Industrial District</span>
+                            <span class="transfer-node-load" id="flowSourceLoad">90 kW &bull; Cap: 100 kW</span>
+                        </div>
+
+                        <div class="transfer-flow-arrow">
+                            <div class="transfer-amount-tag" id="flowTransferAmount">
+                                <span class="flow-arrow-icon">➔</span>
+                                <span id="flowAmountVal">15.0 kW</span>
+                            </div>
+                            <span class="transfer-flow-subtext" id="flowActionText">Simulated Redistribution</span>
+                        </div>
+
+                        <div class="transfer-dest-box">
+                            <span class="transfer-node-label">DESTINATION ZONE</span>
+                            <span class="transfer-node-id" id="flowDestId">Z1</span>
+                            <span class="transfer-node-sub" id="flowDestSub">Residential North</span>
+                            <span class="transfer-node-load" id="flowDestLoad">80 kW &bull; Cap: 100 kW</span>
+                        </div>
+                    </div>
+
+                    <!-- Transfer Details Card -->
+                    <div class="transfer-meta-card">
+                        <div class="meta-row">
+                            <span class="meta-label">Transfer Status:</span>
+                            <span class="meta-value status-success" id="flowStatusBadge">TRANSFER COMPLETE</span>
+                        </div>
+                        <div class="meta-row">
+                            <span class="meta-label">Reason:</span>
+                            <span class="meta-value" id="flowReasonText">Z2 predicted to exceed capacity (115.0 kW forecast). Connected node Z1 has 20.0 kW headroom.</span>
+                        </div>
+                        <div class="meta-row">
+                            <span class="meta-label">Resulting Loads:</span>
+                            <span class="meta-value" id="flowResultText">Z2: 100.0 kW | Z1: 95.0 kW (Within 100 kW limit)</span>
+                        </div>
+                    </div>
+
+                    <!-- Transfer History Table / List -->
+                    <div class="transfer-history-wrap">
+                        <h4 class="history-title">Balancing Actions History</h4>
+                        <div class="action-history-list" id="actionHistoryList">
+                            <div class="empty-state">No load transfers executed yet. Click "Simulate Load Balancing" to start.</div>
+                        </div>
+                    </div>
+                </section>
+            </div>
+
+            <!-- Row 4: Zone Status Table & Forecast Chart -->
+            <div class="grid-bottom-row">
+
+                <!-- Left Column: Zone Status Table -->
+                <section class="table-panel card-panel">
+                    <div class="panel-header">
+                        <div class="section-title-wrap">
+                            <span class="section-icon">📋</span>
+                            <h2 class="section-title">Microgrid Zone Telemetry Table</h2>
+                        </div>
+                        <div style="display: flex; align-items: center; gap: 8px;">
+                            <span class="table-count-badge" id="tableCountBadge">5 Zones Monitored</span>
+                            <button class="table-action-btn" style="border-color: #10b981; color: #34d399; font-weight: 700;" onclick="openAddZoneModal()">➕ Add Grid</button>
+                        </div>
+                    </div>
+
+                    <div class="table-responsive">
+                        <table class="data-table" id="zoneTable">
+                            <thead>
+                                <tr>
+                                    <th>Zone ID</th>
+                                    <th>Zone Name</th>
+                                    <th>Current Load</th>
+                                    <th>Max Capacity</th>
+                                    <th>Forecast Load</th>
+                                    <th>Available Headroom</th>
+                                    <th>Utilization</th>
+                                    <th>Status</th>
+                                    <th style="text-align: center;">Actions</th>
+                                </tr>
+                            </thead>
+                            <tbody id="zoneTableBody">
+                                <!-- Populated dynamically by script.js -->
+                            </tbody>
+                        </table>
+                    </div>
+                </section>
+
+                <!-- Right Column: Forecast Comparison Chart -->
+                <section class="chart-panel card-panel">
+                    <div class="panel-header">
+                        <div class="section-title-wrap">
+                            <span class="section-icon">📈</span>
+                            <h2 class="section-title">Short-Term Load Demand Forecast</h2>
+                        </div>
+                        <span class="chart-tag">Python SMA (Window = 3)</span>
+                    </div>
+
+                    <div class="chart-explanation">
+                        <p>💡 <em>Python uses historical load values to calculate a short-term moving-average forecast with trend analysis for each connected zone.</em></p>
+                    </div>
+
+                    <div class="chart-container">
+                        <canvas id="forecastChart"></canvas>
+                    </div>
+                </section>
+            </div>
+
+            <!-- Row 5: Live Simulation Activity & Event Log -->
+            <section class="activity-log-panel card-panel">
+                <div class="panel-header">
+                    <div class="section-title-wrap">
+                        <span class="section-icon">📜</span>
+                        <h2 class="section-title">System Activity & Audit Log</h2>
+                    </div>
+                    <button class="btn-text-action" onclick="clearActivityLogs()">Clear Logs</button>
+                </div>
+
+                <div class="log-stream-container" id="logStream">
+                    <!-- Dynamic logs stream -->
+                </div>
+            </section>
+
+        </main>
+
+        <!-- Footer -->
+        <footer class="app-footer">
+            <div class="footer-left">
+                <strong>Smart Grid Load Balancer</strong> &bull; College Engineering Mini-Project &bull; Educational Software Prototype
+            </div>
+            <div class="footer-right">
+                <span>ADSA: Graph + Divide-and-Conquer</span> |
+                <span>OOPJ: Java Encapsulation &amp; Grid Models</span> |
+                <span>Python: Time-Series Forecasting</span>
+            </div>
+        </footer>
+    </div>
+
+    <!-- Modal: ADSA Divide and Conquer Academic Visualization -->
+    <div class="modal-backdrop" id="divideConquerModal">
+        <div class="modal-card">
+            <div class="modal-header">
+                <div class="modal-title-wrap">
+                    <span class="modal-icon">🌳</span>
+                    <h3>ADSA: Divide and Conquer Zone Partitioning</h3>
+                </div>
+                <button class="modal-close-btn" onclick="closeDivideConquerModal()">&times;</button>
+            </div>
+            <div class="modal-body">
+                <p class="modal-intro">
+                    Demonstration of the <strong>Divide-and-Conquer</strong> algorithmic paradigm. 
+                    The microgrid divides the set of all zones recursively into balanced regional control clusters (Group A and Group B) to localize grid operations.
+                </p>
+
+                <!-- Divide and conquer tree diagram -->
+                <div class="tree-diagram-container">
+                    <div class="tree-node root-node">
+                        <div class="tree-node-title">All Grid Zones (Depth 0)</div>
+                        <div class="tree-node-zones">[Z1, Z2, Z3, Z4, Z5]</div>
+                    </div>
+                    
+                    <div class="tree-branches">
+                        <div class="tree-branch-left">
+                            <div class="tree-node group-a">
+                                <div class="tree-node-title">Group A (North / West)</div>
+                                <div class="tree-node-zones">[Z1, Z2]</div>
+                                <span class="tree-leaf-tag">Base Case Leaf</span>
+                            </div>
+                        </div>
+
+                        <div class="tree-branch-right">
+                            <div class="tree-node group-b">
+                                <div class="tree-node-title">Group B (East / South)</div>
+                                <div class="tree-node-zones">[Z3, Z4, Z5]</div>
+                            </div>
+                            
+                            <div class="sub-branches">
+                                <div class="tree-node sub-group">
+                                    <div class="tree-node-title">Sub-Group B1</div>
+                                    <div class="tree-node-zones">[Z3]</div>
+                                    <span class="tree-leaf-tag">Base Case Leaf</span>
+                                </div>
+                                <div class="tree-node sub-group">
+                                    <div class="tree-node-title">Sub-Group B2</div>
+                                    <div class="tree-node-zones">[Z4, Z5]</div>
+                                    <span class="tree-leaf-tag">Base Case Leaf</span>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="academic-notes-box">
+                    <h4>Academic Explanation (Viva Ready):</h4>
+                    <ul>
+                        <li><strong>Divide Step:</strong> Split zone array at midpoint <code>mid = zones.length / 2</code>.</li>
+                        <li><strong>Conquer Step:</strong> Recursively partition left and right sub-arrays until <code>length &le; 2</code>.</li>
+                        <li><strong>Combine Step:</strong> Form hierarchical regional microgrid management boundaries.</li>
+                    </ul>
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button class="btn btn-primary" onclick="closeDivideConquerModal()">Close Window</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Modal: Manual Electricity Allotment & Zone Configuration -->
+    <div class="modal-backdrop" id="electricityModal" style="display: none;">
+        <div class="modal-card" style="max-width: 800px;">
+            <div class="modal-header">
+                <div class="modal-title-wrap">
+                    <span class="modal-icon">⚡</span>
+                    <h3>Manual Electricity Allotment &amp; Grid Loads</h3>
+                </div>
+                <button class="modal-close-btn" onclick="closeElectricityModal()">&times;</button>
+            </div>
+            <div class="modal-body">
+                <p class="modal-intro">
+                    Enter or adjust the <strong>Allotted Capacity (kW)</strong> and <strong>Current Active Load (kW)</strong> for each zone in the microgrid. 
+                    Changes will directly update the graph, recalculate available headroom, and feed into the Python forecasting &amp; Java load balancing engine.
+                </p>
+
+                <!-- Quick Presets -->
+                <div class="preset-pills-bar">
+                    <span class="preset-title">Quick Presets:</span>
+                    <button class="preset-btn" onclick="applyPreset('standard')">Standard Demo (Z2 Peak)</button>
+                    <button class="preset-btn" onclick="applyPreset('heavy_stress')">Heavy Stress (Z1 &amp; Z2 Surge)</button>
+                    <button class="preset-btn" onclick="applyPreset('high_capacity')">High Allotted Cap (120 kW)</button>
+                    <button class="preset-btn" onclick="applyPreset('balanced')">Evenly Allotted</button>
+                </div>
+
+                <!-- 5 Zone Input Cards Grid -->
+                <div class="allotment-grid-form" id="allotmentFormGrid">
+                    <!-- Dynamic Zone Input Cards rendered by JS -->
+                </div>
+
+                <div class="academic-notes-box">
+                    <h4>💡 Grid Physics &amp; Rules:</h4>
+                    <ul>
+                        <li><strong>Allotted Capacity:</strong> Maximum allowable continuous transmission limit before thermal overload.</li>
+                        <li><strong>Available Headroom:</strong> Calculated as <code>Max(0, Allotted Capacity - Active Load)</code>.</li>
+                        <li><strong>Balancing Rule:</strong> When load exceeds capacity, Java shifts excess kilowatts only to graph-connected neighbor zones.</li>
+                    </ul>
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button class="btn btn-secondary" onclick="closeElectricityModal()">Cancel</button>
+                <button class="btn btn-success" onclick="saveElectricityAllotment()">💾 Apply Allotment to Grid</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Modal: Academic Subjects Used in this Project -->
+    <div class="modal-backdrop" id="subjectsModal" style="display: none;">
+        <div class="modal-card" style="max-width: 900px;">
+            <div class="modal-header">
+                <div class="modal-title-wrap">
+                    <span class="modal-icon">📚</span>
+                    <h3>Academic Subjects &amp; Engineering Principles</h3>
+                </div>
+                <button class="modal-close-btn" onclick="closeSubjectsModal()">&times;</button>
+            </div>
+            <div class="modal-body">
+                <p class="modal-intro">
+                    This project is designed as an educational, multi-disciplinary engineering prototype integrating <strong>Data Structures &amp; Algorithms (ADSA)</strong>, <strong>Object-Oriented Programming (OOPJ)</strong>, and <strong>Python Time-Series Analytics</strong>.
+                </p>
+
+                <!-- 3 Subject Cards -->
+                <div class="subjects-card-grid">
+                    
+                    <!-- Card 1: ADSA -->
+                    <div class="subject-info-card adsa-card">
+                        <div class="subject-card-header">
+                            <span class="subject-card-icon">🕸️</span>
+                            <div>
+                                <h4 class="subject-card-title">1. ADSA (Unit 2)</h4>
+                                <span class="subject-card-subtitle">Graph Theory &amp; Divide-and-Conquer</span>
+                            </div>
+                        </div>
+                        <ul class="subject-points-list">
+                            <li><strong>Grid as a Graph:</strong> Zones modeled as vertices $V = \{Z_1, \dots, Z_5\}$ and transmission lines as edges $E$ using an Adjacency List.</li>
+                            <li><strong>Graph Traversal:</strong> Breadth-First Search (BFS) explores connected nodes in topological distance order to find target zones with available headroom.</li>
+                            <li><strong>Divide-and-Conquer:</strong> Recursively partitions the zone set into regional sub-clusters (Group A vs Group B) with base case `size &le; 2`.</li>
+                            <li><span class="subject-code-tag">Grid.java • Adjacency List • BFS</span></li>
+                        </ul>
+                    </div>
+
+                    <!-- Card 2: OOPJ -->
+                    <div class="subject-info-card oopj-card">
+                        <div class="subject-card-header">
+                            <span class="subject-card-icon">☕</span>
+                            <div>
+                                <h4 class="subject-card-title">2. OOPJ (Java OOP)</h4>
+                                <span class="subject-card-subtitle">Simulation Classes &amp; Architecture</span>
+                            </div>
+                        </div>
+                        <ul class="subject-points-list">
+                            <li><strong>Encapsulation:</strong> Private zone attributes (`currentLoad`, `maximumCapacity`, `forecastLoad`) accessed via domain methods.</li>
+                            <li><strong>Domain Business Logic:</strong> Calculation methods for headroom, overload calculation, utilization rates, and thread-safe load updates.</li>
+                            <li><strong>Modular Simulation Engine:</strong> Separation into `Zone`, `Grid`, `LoadBalancer`, `Simulation`, and `SimpleHttpServer`.</li>
+                            <li><span class="subject-code-tag">Zone.java • LoadBalancer.java • Simulation.java</span></li>
+                        </ul>
+                    </div>
+
+                    <!-- Card 3: Python -->
+                    <div class="subject-info-card python-card">
+                        <div class="subject-card-header">
+                            <span class="subject-card-icon">🐍</span>
+                            <div>
+                                <h4 class="subject-card-title">3. Python Analytics</h4>
+                                <span class="subject-card-subtitle">Short-Term Load Demand Forecasting</span>
+                            </div>
+                        </div>
+                        <ul class="subject-points-list">
+                            <li><strong>Time-Series Forecasting:</strong> Simple Moving Average (SMA, $k=3$) with rate-of-change linear trend projection.</li>
+                            <li><strong>Surge Prediction:</strong> Detects impending evening/industrial surges before physical overloads occur.</li>
+                            <li><strong>CSV File Pipeline:</strong> Java writes `historical_load.csv` &rarr; Python reads, forecasts, &amp; writes `forecast.csv` &rarr; Java executes load shifting.</li>
+                            <li><span class="subject-code-tag">forecast.py • CSV Data Exchange</span></li>
+                        </ul>
+                    </div>
+
+                </div>
+
+                <div class="academic-notes-box">
+                    <h4>🎓 How They Work Together (Pipeline):</h4>
+                    <p style="font-size: 12px; color: #cbd5e1; line-height: 1.6;">
+                        <strong>Java OOP</strong> maintains the grid topology &bull; 
+                        <strong>ADSA D&amp;C</strong> partitions zones into regional control domains &bull; 
+                        <strong>Java</strong> exports historical readings to CSV &bull; 
+                        <strong>Python</strong> calculates the short-term load forecast &bull; 
+                        <strong>ADSA Graph BFS</strong> discovers adjacent candidate zones with headroom &bull; 
+                        <strong>Java LoadBalancer</strong> shifts the surplus load to keep all zones stable!
+                    </p>
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button class="btn btn-primary" onclick="closeSubjectsModal()">Close Window</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Modal: Add New Grid / Zone -->
+    <div class="modal-backdrop" id="addZoneModal" style="display: none;">
+        <div class="modal-card" style="max-width: 650px;">
+            <div class="modal-header">
+                <div class="modal-title-wrap">
+                    <span class="modal-icon">➕</span>
+                    <h3>Add New Grid / Microgrid Zone</h3>
+                </div>
+                <button class="modal-close-btn" onclick="closeAddZoneModal()">&times;</button>
+            </div>
+            <div class="modal-body">
+                <p class="modal-intro">
+                    Define a new microgrid zone node, assign its <strong>custom name</strong>, initial demand, allotted capacity, and connect it to existing grid transmission lines.
+                </p>
+
+                <div class="add-zone-form">
+                    <div class="form-group-row">
+                        <div class="form-field">
+                            <label>Grid ID (e.g. Z6):</label>
+                            <input type="text" id="newZoneId" placeholder="Z6" maxlength="6" style="font-family: var(--font-mono); text-transform: uppercase;">
+                        </div>
+                        <div class="form-field">
+                            <label>Grid Custom Name:</label>
+                            <input type="text" id="newZoneName" placeholder="Solar Substation West" maxlength="40">
+                        </div>
+                    </div>
+
+                    <div class="form-group-row">
+                        <div class="form-field">
+                            <label>Active Current Load (kW):</label>
+                            <input type="number" id="newZoneLoad" value="50" min="0" max="300" step="5">
+                        </div>
+                        <div class="form-field">
+                            <label>Allotted Max Capacity (kW):</label>
+                            <input type="number" id="newZoneCap" value="100" min="10" max="300" step="5">
+                        </div>
+                    </div>
+
+                    <div class="form-field">
+                        <label>Connect Transmission Lines To (Graph Edges):</label>
+                        <div class="connections-checkbox-group" id="connectionsCheckboxGroup">
+                            <!-- Populated dynamically with existing zones -->
+                        </div>
+                    </div>
+                </div>
+
+                <div class="academic-notes-box">
+                    <h4>💡 Graph Integration:</h4>
+                    <p style="font-size: 12px; color: #94a3b8;">
+                        The new node will become an active vertex $V_{new}$ in the grid's adjacency list, enabling BFS power redirection and D&amp;C regional partitioning.
+                    </p>
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button class="btn btn-secondary" onclick="closeAddZoneModal()">Cancel</button>
+                <button class="btn btn-success" onclick="submitAddNewZone()">➕ Add Grid to Microgrid</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Script -->
+    <script src="script.js"></script>
+</body>
+</html>
